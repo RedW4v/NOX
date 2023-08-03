@@ -25,21 +25,32 @@ main_window.configure(bg="#0F2027")#fondo
 label_title = Label(main_window, text="NOX", bg="#203A43", fg="#000000", font=("Arial", 20,'bold'))
 label_title.pack(pady=10)#vuelve a la label un bloque y lo pone en el centro con padding de 10 px
 
-nox_photo = ImageTk.PhotoImage(Image.open("R.jpg"))
+nox_photo = ImageTk.PhotoImage(Image.open(r"C:\Users\zjosh\Desktop\RW\Proyectoss\AsistentePY\NOX\R.jpg"))
 window_photo = Label(main_window, image=nox_photo)
 window_photo.pack(pady=5)
 
+def mexico_voice():
+    change_voice(2)
+def usa_voice():
+    change_voice(0)
+def change_voice(id):
+    engine.setProperty('voice', voices[id].id)
+    engine.setProperty('rate', 145)
+    if id == 2:
+        talk("Hola; Soy NOX")
+    else:
+        talk("Hello; Im NOX")
 
-"""
 name = "Nox"
 listener = sr.Recognizer()
 engine = pyttsx3.init()
 
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[0].id)
-# Este puede no funcionar
+engine.setProperty('voice', voices[2].id)
 engine.setProperty('rate', 145)
 
+
+"""
 sites = {
     'google': 'google.com',
     'youtube': 'youtube.com',
@@ -158,5 +169,16 @@ def write(f):
     sub.Popen("nota.txt", shell=True)
 
 """
+
+button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
+                         font=("Arial",10,"bold"), command=mexico_voice)
+button_voice_mx.place(x=625,y=90, width=100, height=30)
+
+button_voice_us = Button(main_window, text="Voz USA", fg="white", bg="#11998e", 
+                         font=("Arial",10,"bold"), command=usa_voice)
+button_voice_mx.place(x=625,y=120, width=100, height=30)
+
+
+
 
 main_window.mainloop()#HAce que el código se ejecute solo cuando la ventana esté ejecutándose

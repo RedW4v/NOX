@@ -215,6 +215,8 @@ def open_w_files():
 
     save_button = Button(window_files, text="Guardar", bg="#203A43", fg="White",width=8,height=1,command=add_files)
     save_button.pack(paddy=4)
+
+
 def open_w_apps():
     global app_entry, patha_entry
     window_app = Toplevel()
@@ -225,20 +227,20 @@ def open_w_apps():
     main_window.eval(f'tk::PlaceWindow {str(window_app)} center')
 
     title_label = Label(window_app, text="Agrega una aplicación",fg="white",bg="#0F2027", font=('Arial', 15,'bold'))
-    title_label.pack(paddy=3)
+    title_label.pack(pady=3)
     name_label = Label(window_app, text="Nombre de la aplicación",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    name_label.pack(paddy=2)
+    name_label.pack(pady=2)
 
     app_entry = Entry(window_app)
-    app_entry.pack(paddy=1)
+    app_entry.pack(pady=1)
 
     path_label = Label(window_app, text="Dirección de la aplicación",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    path_label.pack(paddy=2)
+    path_label.pack(pady=2)
     patha_entry = Entry(window_app,width=35)
-    patha_entry.pack(paddy=1)
+    patha_entry.pack(pady=1)
 
     save_button = Button(window_app, text="Guardar", bg="#203A43", fg="White",width=8,height=1,command=add_apps)
-    save_button.pack(paddy=4)
+    save_button.pack(pady=4)
 def open_w_pages():
     global page_entry, pathp_entry
     window_page = Toplevel()
@@ -249,26 +251,27 @@ def open_w_pages():
     main_window.eval(f'tk::PlaceWindow {str(window_page)} center')
 
     title_label = Label(window_page, text="Agrega una página",fg="white",bg="#0F2027", font=('Arial', 15,'bold'))
-    title_label.pack(paddy=3)
+    title_label.pack(pady=3)
     name_label = Label(window_page, text="Nombre de la pag",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    name_label.pack(paddy=2)
+    name_label.pack(pady=2)
 
     page_entry = Entry(window_page)
-    page_entry.pack(paddy=1)
+    page_entry.pack(pady=1)
 
     path_label = Label(window_page, text="URL de la página",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    path_label.pack(paddy=2)
+    path_label.pack(pady=2)
     pathp_entry = Entry(window_page,width=35)
-    pathp_entry.pack(paddy=1)
+    pathp_entry.pack(pady=1)
 
     save_button = Button(window_page, text="Guardar", bg="#203A43", fg="White",width=8,height=1, command=add_pages)
-    save_button.pack(paddy=4)
+    save_button.pack(pady=4)
 
 def add_files():
     name_file = filename_entry.get().strip() #Corta espacio en blanco si está al inicio o al final
     path_file = pathf_entry.get().strip()
     
     files[name_file] = path_file
+    save_data(name_file,path_file,"archivos.txt")
     filename_entry.delete(0,"end")
     pathf_entry.delete(0,"end")
 
@@ -277,6 +280,7 @@ def add_apps():
     path_app = patha_entry.get().strip()
     
     programs[name_app] = path_app
+    save_data(name_app,path_app,"apliciones.txt")
     app_entry.delete(0,"end")
     patha_entry.delete(0,"end")
 def add_pages():
@@ -284,8 +288,17 @@ def add_pages():
     path_page = pathp_entry.get().strip()
     
     sites[name_page] = path_page
+    save_data(name_page,path_page,"aplicaciones.txt")
     page_entry.delete(0,"end")
     pathp_entry.delete(0,"end")
+
+def save_data(key,value,file_name): #Memoria para los tres diccionarios
+    try:
+        with open(file_name, 'a') as f:
+            f.write(key+ "," +value+ "\n")
+    except FileNotFoundError:
+        file = open(file_name, "a")
+        file.write(key+ "," +value+ "\n")
 
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
@@ -316,4 +329,4 @@ button_add_pages = Button(main_window, text="Add pages", fg="white", bg="#23074d
                          font=("Arial",10,"bold"), command=open_w_pages)
 button_add_pages.place(x=625,y=270, width=100, height=30)
 
-main_window.mainloop()#HAce que el código se ejecute solo cuando la ventana esté ejecutándose
+main_window.mainloop()#Hace que el código se ejecute solo cuando la ventana esté ejecutándose

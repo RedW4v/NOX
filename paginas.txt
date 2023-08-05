@@ -1,0 +1,6 @@
+google,google.com
+youtube,youtube.com
+facebook,facebook.com
+whatsapp,web.whatsapp.com
+clases,classroom.google.com/u/1/
+traductor,translate.google.com.mx/

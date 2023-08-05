@@ -10,7 +10,8 @@ import os
 from pygame import mixer
 from tkinter import *
 from PIL import ImageTk, Image
-#import threading as tr
+import threading
+
 
 # python .\NOX.py
 # Al pasarlo a otro dispositivo hay que cambiar las rutas en files, programs y hay que poner call me little
@@ -62,6 +63,17 @@ def change_voice(id):
     else:
         talk("Hello; Im Nox")
 
+def charge_data(name_dict, name_file):
+    try:
+        with open(name_file) as f:
+            for line in f:
+                (key,val) = line.split(",")
+                val = val.rsplit("\n") #Cortamos los saltos de línea que se va a cargar
+                name_dict[key] = val
+    except FileNotFoundError:
+        pass
+
+
 name = "Nox"
 listener = sr.Recognizer()
 engine = pyttsx3.init()
@@ -73,12 +85,12 @@ engine.setProperty('rate', 145)
 
 
 sites = {}
-
+charge_data(sites,"paginas.txt")
 files = {}
-
+charge_data(files,"archivos.txt")
 # Si no funciona hay que buscar esa dirección, abrir la ubicación del archivo exe y copiar su ruta
 programs = {}
-
+charge_data(programs,"aplicaciones.txt")
 
 def talk(text):
     engine.say(text)
@@ -106,6 +118,26 @@ def listen():
         pass
     return rec
 
+def play_alarm():
+    mixer.init()
+    mixer.music.load("Ghost_Call_Me_Little_Sunshine.mp3")
+    mixer.music.play()
+    while mixer.music.get_busy():
+        if keyboard.is_pressed("s"):
+            mixer.music.stop()
+            break
+
+
+def set_alarm(time):
+    current_time = datetime.datetime.now()
+    alarm_time = datetime.datetime.combine(current_time.date(), time)
+    if alarm_time < current_time:
+        alarm_time += datetime.timedelta(days=1)
+    
+    delta = alarm_time - current_time
+    seconds = delta.total_seconds()
+
+    threading.Timer(seconds, play_alarm).start()
 
 
 def run_nox():
@@ -123,26 +155,14 @@ def run_nox():
             talk(wiki)
             write_text(search + ": "+wiki)
             break #Muestra la info después de que deja de escuchar así que hay que darle de nuevo al botón
-        # elif 'alarma' in rec:
-        #     # t = tr.Thread(target=clock, args=(rec,))
-        #     # t.start()
-        #     num = rec.replace('alarma', '')
-        #     # Esto sirve para que no haya un espacio de más
-        #     num = num.strip()
-        #     talk("Alarma activada a las " + num + " horas")
-        #     print("Alarma activada a las " + num + " horas")
-        #     if num[0] != '0' and len(num) < 5:
-        #         num = '0' + num
-        #     print(num)
-        #     while True:
-        #         if datetime.datetime.now().strftime('%H:%M') == num:
-        #             print("Despierta!!!!")
-        #             mixer.init()
-        #             mixer.music.load("Ghost_Call_Me_Little_Sunshine.mp3")
-        #             mixer.music.play()
-        #         if keyboard.read_key() == "s":
-        #             mixer.music.stop()
-        #             break
+        elif 'alarma' in rec:
+            try:
+                time_str = rec.replace('alarma', '').strip()
+                alarm_time = datetime.datetime.strptime(time_str, '%H:%M')
+                talk("Alarma programada para las " + alarm_time.strftime('%I:%M %p'))
+                set_alarm(alarm_time.time())
+            except ValueError:
+                talk("No pude entender la hora de la alarma. Por favor, usa el formato HH:MM.")
         elif 'abre' in rec:
             task = rec.replace("abre", "").strip()
             if task in sites:
@@ -179,7 +199,7 @@ def run_nox():
                 file = open("nota.txt", 'w')
                 write(file)
         elif 'termina' in rec:
-            talk('NOX: ¡over and out!')
+            talk('Nox fuera')
             break
 
 
@@ -288,7 +308,7 @@ def add_pages():
     path_page = pathp_entry.get().strip()
     
     sites[name_page] = path_page
-    save_data(name_page,path_page,"aplicaciones.txt")
+    save_data(name_page,path_page,"paginas.txt")
     page_entry.delete(0,"end")
     pathp_entry.delete(0,"end")
 
@@ -309,13 +329,12 @@ button_voice_us = Button(main_window, text="Voz USA", fg="white", bg="#11998e",
 button_voice_us.place(x=625,y=50, width=100, height=30)
 
 button_listen = Button(main_window, text="Escuchar", fg="white", bg="#23074d", 
-                         font=("Arial",15,"bold"),width=20,height=3 ,command=run_nox)
-button_listen.pack(pady=10)
+                         font=("Arial",15,"bold"),width=20,height= 2,command=run_nox)
+button_listen.pack(side=BOTTOM, pady=10)
 
 button_speak = Button(main_window, text="Hablar", fg="white", bg="#23074d", 
                          font=("Arial",10,"bold"), command=read_and_talk)
 button_speak.place(x=625,y=150, width=100, height=30)
-
 
 
 
@@ -328,5 +347,18 @@ button_add_apps.place(x=625,y=230, width=100, height=30)
 button_add_pages = Button(main_window, text="Add pages", fg="white", bg="#23074d", 
                          font=("Arial",10,"bold"), command=open_w_pages)
 button_add_pages.place(x=625,y=270, width=100, height=30)
+
+#Seguir con esta parte
+button_actual_pages = Button(main_window, text="Páginas actuales", fg="white", bg="#23074d", 
+                         font=("Arial",10,"bold"), command=open_w_pages)
+button_actual_pages.place(x=625,y=400 , width=100, height=30)
+
+button_actual_apps = Button(main_window, text="Apps actuales", fg="white", bg="#23074d", 
+                         font=("Arial",10,"bold"), command=open_w_pages)
+button_actual_apps.place(x=625,y=400 , width=100, height=30)
+
+button_actual_files = Button(main_window, text="Archivos actuales", fg="white", bg="#23074d", 
+                         font=("Arial",10,"bold"), command=open_w_pages)
+button_actual_files.place(x=625,y=400 , width=100, height=30)
 
 main_window.mainloop()#Hace que el código se ejecute solo cuando la ventana esté ejecutándose

@@ -1,3 +1,4 @@
+import Whatsapp as whats
 import speech_recognition as sr
 import subprocess as sub
 import pyttsx3
@@ -75,7 +76,6 @@ def charge_data(name_dict, name_file):
 
 
 name = "Nox"
-listener = sr.Recognizer()
 engine = pyttsx3.init()
 
 voices = engine.getProperty('voices')
@@ -90,6 +90,8 @@ files = {}
 charge_data(files,"archivos.txt")
 programs = {}
 charge_data(programs,"aplicaciones.txt")
+contacts = {}
+charge_data(contacts,"contactos.txt")
 
 def talk(text):
     engine.say(text)
@@ -102,20 +104,21 @@ def write_text(text_wiki):
     text_info.insert(INSERT, text_wiki)
 
 def listen():
-    rec = ""  # Asignamos un valor predeterminado a la variable rec
+    listener = sr.Recognizer()
+
+    with sr.Microphone() as source:
+        listener.adjust_for_ambient_noise(source)
+        talk("Te escucho...")
+        pc = listener.listen(source)
     try:
-        with sr.Microphone() as source:
-
-            talk("Te escucho...")
-            pc = listener.listen(source)
-            rec = listener.recognize_google(pc, language="es")
-            rec = rec.lower()
-            if name in rec:
-                rec = rec.replace(name, '')
-
-    except:
-        pass
+        rec = listener.recognize_google(pc, language="es")
+        rec = rec.lower()
+    except sr.UnknownValueError:
+        print("No entendí, intenta de nuevo")
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
     return rec
+
 
 def reproduce(rec):
     music = rec.replace('reproduce', '')
@@ -168,6 +171,20 @@ def escribe(rec):
     except Exception as e:
         print("Error:", e)
 
+def enviar_mensaje(rec):
+    talk("¿A quién deseas enviar el mensaje?")
+    contact = listen()
+    contact = contact.strip()
+    if contact in contacts:
+        for cont in contacts:
+            if cont == contact:
+                contact = contacts[cont]
+                talk("Qué mensaje deseas enviar?")
+                message = listen()
+                talk("Enviando mensaje...")
+                whats.send_message(contact,message)
+    else:
+        talk("Parece que no has agregado a ese contacto, usa el botón de agregar")
 
 def play_alarm():
     mixer.init()
@@ -196,7 +213,7 @@ def play_instructions():
     global instructions_played
     if not instructions_played:
         instructions_played = True
-        talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones o archivos que desees abrir, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
+        talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones, archivos que desees abrir y contactos de whatsapp, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. Para los contactos asegurate de agregar el número telefónico precedido del código de tu país como +52 en méxico. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
 
 
 key_words = {
@@ -205,12 +222,17 @@ key_words = {
     'alarma': alarma,
     'abre': abre,
     'archivo': archivo,
-    'escribe': escribe
+    'escribe': escribe,
+    'mensaje': enviar_mensaje
 }
 
 def run_nox():
     while True:
-        rec = listen()
+        try:
+            rec = listen()
+        except UnboundLocalError:
+            talk("No te entendí, intenta de nuevo")
+            continue
         if 'busca' in rec:
             key_words['busca'](rec)
         else:
@@ -220,7 +242,7 @@ def run_nox():
         if 'termina' in rec:
             talk('Nox fuera')
             break
-
+    main_window.update() #Refresca el programa para eficiencia
 
 def write(f):
     talk("¿Qué quieres que escriba?")
@@ -304,6 +326,39 @@ def open_w_pages():
 
     save_button = Button(window_page, text="Guardar", bg="#203A43", fg="White",width=8,height=1, command=add_pages)
     save_button.pack(pady=4)
+def open_w_contact():
+    global contact_entry, pathcon_entry
+    window_contact = Toplevel()
+    window_contact.title("Agregar Contacto")
+    window_contact.configure(bg="#0F2027")
+    window_contact.geometry("300x200")
+    window_contact.resizable(0,0)
+    main_window.eval(f'tk::PlaceWindow {str(window_contact)} center')
+
+    title_label = Label(window_contact, text="Agrega un contacto",fg="white",bg="#0F2027", font=('Arial', 15,'bold'))
+    title_label.pack(pady=3)
+    name_label = Label(window_contact, text="Nombre del contacto",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
+    name_label.pack(pady=2)
+
+    contact_entry = Entry(window_contact)
+    contact_entry.pack(pady=1)
+
+    path_label = Label(window_contact, text="Número del contacto(con el código del país)",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
+    path_label.pack(pady=2)
+    pathcon_entry = Entry(window_contact,width=35)
+    pathcon_entry.pack(pady=1)
+
+    save_button = Button(window_contact, text="Guardar", bg="#203A43", fg="White",width=8,height=1, command=add_contact)
+    save_button.pack(pady=4)
+
+def add_contact():
+    name_file = contact_entry.get().strip() #Corta espacio en blanco si está al inicio o al final
+    path_file = pathcon_entry.get().strip()
+    
+    contacts[name_file] = path_file
+    save_data(name_file,path_file,"contactos.txt")
+    contact_entry.delete(0,"end")
+    pathcon_entry.delete(0,"end")
 
 def add_files():
     name_file = filename_entry.get().strip() #Corta espacio en blanco si está al inicio o al final
@@ -360,6 +415,13 @@ def talk_files():
             talk(file)
     else:
         talk("Aún no has agregado documentos")
+def talk_contacts():
+    if bool(contacts) == True:
+        talk('Has agregado los siguientes contactos:')
+        for contact in contacts:
+            talk(contact)
+    else:
+        talk('Aún no has agregado contactos')
 
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
@@ -388,6 +450,9 @@ button_add_apps.place(x=625,y=230, width=100, height=30)
 button_add_pages = Button(main_window, text="Add pages", fg="white", bg="#23074d", 
                          font=("Arial",10,"bold"), command=open_w_pages)
 button_add_pages.place(x=625,y=270, width=100, height=30)
+button_add_contact = Button(main_window, text="Add contact", fg="white", bg="#23074d", 
+                            font=("Arial",10,"bold"), command=open_w_contact)
+button_add_contact.place(x=625,y=310, width=100, height=30)
 
 
 button_actual_pages = Button(main_window, text="Páginas actuales", fg="white", bg="#7303c0", 
@@ -401,6 +466,10 @@ button_actual_apps.place(x=335,y=280 , width=125, height=30)
 button_actual_files = Button(main_window, text="Archivos actuales", fg="white", bg="#7303c0", 
                          font=("Arial",10,"bold"), command=talk_files)
 button_actual_files.place(x=465,y=280 , width=125, height=30)
+
+button_actual_contacts = Button(main_window, text="Contactos actuales", fg="white", bg="#7303c0", 
+                         font=("Arial",10,"bold"), command=talk_contacts)
+button_actual_contacts.place(x=335,y=315 , width=125, height=30)
 
 button_important = Button(main_window, text="IMPORTANTE", fg="black", bg="#FFC300",
                          font=("Arial", 10, "bold"), command=play_instructions)

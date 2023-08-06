@@ -262,20 +262,20 @@ def open_w_files():
     main_window.eval(f'tk::PlaceWindow {str(window_files)} center')
 
     title_label = Label(window_files, text="Agrega un archivo",fg="white",bg="#0F2027", font=('Arial', 15,'bold'))
-    title_label.pack(paddy=3)
+    title_label.pack(pady=3)
     name_label = Label(window_files, text="Nombre un archivo",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    name_label.pack(paddy=2)
+    name_label.pack(pady=2)
 
     filename_entry = Entry(window_files)
-    filename_entry.pack(paddy=1)
+    filename_entry.pack(pady=1)
 
     path_label = Label(window_files, text="Ruta del archivo",fg="white",bg="#0F2027", font=('Arial', 10,'bold'))
-    path_label.pack(paddy=2)
+    path_label.pack(pady=2)
     pathf_entry = Entry(window_files,width=35)
-    pathf_entry.pack(paddy=1)
+    pathf_entry.pack(pady=1)
 
     save_button = Button(window_files, text="Guardar", bg="#203A43", fg="White",width=8,height=1,command=add_files)
-    save_button.pack(paddy=4)
+    save_button.pack(pady=4)
 
 
 def open_w_apps():

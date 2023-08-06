@@ -29,7 +29,7 @@ comandos = """
         - Reproduce ... (canción)
         - Busca ... (algo)
         - Abre ... (pag o app)
-        - Alarma ... No disponible
+        - Alarma ... (Hora en 24hrs)
         - Archivo ... (nombre)
         - Escribe ... (info a anotar)
         - Termina para que deje de
@@ -88,7 +88,6 @@ sites = {}
 charge_data(sites,"paginas.txt")
 files = {}
 charge_data(files,"archivos.txt")
-# Si no funciona hay que buscar esa dirección, abrir la ubicación del archivo exe y copiar su ruta
 programs = {}
 charge_data(programs,"aplicaciones.txt")
 
@@ -139,8 +138,17 @@ def set_alarm(time):
 
     threading.Timer(seconds, play_alarm).start()
 
+instructions_played = False
+
+def play_instructions():
+    global instructions_played
+    if not instructions_played:
+        instructions_played = True
+        talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones o archivos que desees abrir, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
+
 
 def run_nox():
+    play_instructions()
     while True:
         rec = listen()
         if 'reproduce' in rec:
@@ -320,6 +328,28 @@ def save_data(key,value,file_name): #Memoria para los tres diccionarios
         file = open(file_name, "a")
         file.write(key+ "," +value+ "\n")
 
+def talk_pages():
+    if bool(sites) == True:
+        talk("Has agregado las siguientes páginas web:")
+        for site in sites:
+            talk(site)
+    else:
+        talk("Aún no has agregado páginas web")
+def talk_apps(): #programs
+    if bool(programs) == True:
+        talk("Has agregado las siguientes aplicaciones:")
+        for program in programs:
+            talk(program)
+    else:
+        talk("Aún no has agregado aplicaciones")
+def talk_files(): #files
+    if bool(files) == True:
+        talk("Has agregado los siguientes documentos:")
+        for file in files:
+            talk(file)
+    else:
+        talk("Aún no has agregado documentos")
+
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
 button_voice_mx.place(x=625,y=90, width=100, height=30)
@@ -328,11 +358,11 @@ button_voice_us = Button(main_window, text="Voz USA", fg="white", bg="#11998e",
                          font=("Arial",10,"bold"), command=usa_voice)
 button_voice_us.place(x=625,y=50, width=100, height=30)
 
-button_listen = Button(main_window, text="Escuchar", fg="white", bg="#23074d", 
+button_listen = Button(main_window, text="Escuchar", fg="white", bg="#8E0E00", 
                          font=("Arial",15,"bold"),width=20,height= 2,command=run_nox)
 button_listen.pack(side=BOTTOM, pady=10)
 
-button_speak = Button(main_window, text="Hablar", fg="white", bg="#23074d", 
+button_speak = Button(main_window, text="Hablar", fg="white", bg="#480048", 
                          font=("Arial",10,"bold"), command=read_and_talk)
 button_speak.place(x=625,y=150, width=100, height=30)
 
@@ -348,17 +378,20 @@ button_add_pages = Button(main_window, text="Add pages", fg="white", bg="#23074d
                          font=("Arial",10,"bold"), command=open_w_pages)
 button_add_pages.place(x=625,y=270, width=100, height=30)
 
-#Seguir con esta parte
-button_actual_pages = Button(main_window, text="Páginas actuales", fg="white", bg="#23074d", 
-                         font=("Arial",10,"bold"), command=open_w_pages)
-button_actual_pages.place(x=625,y=400 , width=100, height=30)
 
-button_actual_apps = Button(main_window, text="Apps actuales", fg="white", bg="#23074d", 
-                         font=("Arial",10,"bold"), command=open_w_pages)
-button_actual_apps.place(x=625,y=400 , width=100, height=30)
+button_actual_pages = Button(main_window, text="Páginas actuales", fg="white", bg="#7303c0", 
+                         font=("Arial",10,"bold"), command=talk_pages)
+button_actual_pages.place(x=205,y=280 , width=125, height=30)
 
-button_actual_files = Button(main_window, text="Archivos actuales", fg="white", bg="#23074d", 
-                         font=("Arial",10,"bold"), command=open_w_pages)
-button_actual_files.place(x=625,y=400 , width=100, height=30)
+button_actual_apps = Button(main_window, text="Apps actuales", fg="white", bg="#7303c0", 
+                         font=("Arial",10,"bold"), command=talk_apps)
+button_actual_apps.place(x=335,y=280 , width=125, height=30)
 
-main_window.mainloop()#Hace que el código se ejecute solo cuando la ventana esté ejecutándose
+button_actual_files = Button(main_window, text="Archivos actuales", fg="white", bg="#7303c0", 
+                         font=("Arial",10,"bold"), command=talk_files)
+button_actual_files.place(x=465,y=280 , width=125, height=30)
+
+button_important = Button(main_window, text="IMPORTANTE", fg="black", bg="#FFC300",
+                         font=("Arial", 10, "bold"), command=play_instructions)
+button_important.place(x=690, y=400, width=100, height=30)
+main_window.mainloop()

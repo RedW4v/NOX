@@ -37,7 +37,7 @@ comandos = """
 """
 
 
-label_title = Label(main_window, text="NOX", bg="#203A43", fg="#000000", font=("Arial", 20,'bold'))
+label_title = Label(main_window, text="NOX", bg="#000000", fg="#833ab4", font=("Arial", 20,'bold'))
 label_title.pack(pady=10)#vuelve a la label un bloque y lo pone en el centro con padding de 10 px
 
 canvas_comandos = Canvas(bg="#2c3e50", height=170, width=195)
@@ -117,6 +117,58 @@ def listen():
         pass
     return rec
 
+def reproduce(rec):
+    music = rec.replace('reproduce', '')
+    talk("Reproduciendo " + music)
+            # Hace el proceso de reproducción en youtube
+    pywhatkit.playonyt(music)
+def busca(rec):
+    if 'busca' in rec:
+        search = rec.replace('busca', '')
+        wikipedia.set_lang("es")
+        wiki = wikipedia.summary(search, 1)
+        talk(wiki)
+        write_text(search + ": "+wiki)
+def alarma(rec):
+    try:
+        time_str = rec.replace('alarma', '').strip()
+        alarm_time = datetime.datetime.strptime(time_str, '%H:%M')
+        talk("Alarma programada para las " + alarm_time.strftime('%I:%M %p'))
+        set_alarm(alarm_time.time())
+    except ValueError:
+        talk("No pude entender la hora de la alarma. Por favor, usa el formato HH:MM.")
+
+def abre(rec):
+    task = rec.replace("abre", "").strip()
+    if task in sites:
+        for task in sites:
+            if task in rec:
+                # El shell es para que se tome como escritura en el shell
+                sub.call(f'start msedge.exe {sites[task]}', shell=True)
+                print(f"Abriendo {task}")
+                talk(f'Abriendo {task}')
+def archivo(rec):
+    file = rec.replace("archivo", "").strip()
+    if file in files:
+        for file in files:
+            if file in rec:
+                sub.Popen(files[file], shell=True)
+                print(f'Abriendo {file}')
+                talk(f'Abriendo {file}')
+    else:
+        talk("Lo siento, parece que aún no has agregado ese elemento. Usa el botón de agregar")
+def escribe(rec):
+    try:
+        with open("nota.txt", 'a') as f:
+            talk("¿Qué quieres que escriba?")
+            rec_write = listen()
+            f.write(rec_write + os.linesep)
+        talk("¡Listo!, dale un vistazo")
+        sub.Popen("nota.txt", shell=True)
+    except Exception as e:
+        print("Error:", e)
+
+
 def play_alarm():
     mixer.init()
     mixer.music.load("Ghost_Call_Me_Little_Sunshine.mp3")
@@ -147,66 +199,25 @@ def play_instructions():
         talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones o archivos que desees abrir, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
 
 
+key_words = {
+    'busca': busca,
+    'reproduce': reproduce,
+    'alarma': alarma,
+    'abre': abre,
+    'archivo': archivo,
+    'escribe': escribe
+}
+
 def run_nox():
-    play_instructions()
     while True:
         rec = listen()
-        if 'reproduce' in rec:
-            music = rec.replace('reproduce', '')
-            talk("Reproduciendo " + music)
-            # Hace el proceso de reproducción en youtube
-            pywhatkit.playonyt(music)
-        elif 'busca' in rec:
-            search = rec.replace('busca', '')
-            wikipedia.set_lang("es")
-            wiki = wikipedia.summary(search, 1)
-            talk(wiki)
-            write_text(search + ": "+wiki)
-            break #Muestra la info después de que deja de escuchar así que hay que darle de nuevo al botón
-        elif 'alarma' in rec:
-            try:
-                time_str = rec.replace('alarma', '').strip()
-                alarm_time = datetime.datetime.strptime(time_str, '%H:%M')
-                talk("Alarma programada para las " + alarm_time.strftime('%I:%M %p'))
-                set_alarm(alarm_time.time())
-            except ValueError:
-                talk("No pude entender la hora de la alarma. Por favor, usa el formato HH:MM.")
-        elif 'abre' in rec:
-            task = rec.replace("abre", "").strip()
-            if task in sites:
-                for task in sites:
-                    if task in rec:
-                        # El shell es para que se tome como escritura en el shell
-                        sub.call(f'start msedge.exe {sites[task]}', shell=True)
-                        print(f"Abriendo {task}")
-                        talk(f'Abriendo {task}')
-            elif task in programs:
-                for task in programs:
-                    if task in rec:
-                        os.startfile(programs[task])
-                        talk(f"Abriendo {task}")
-                        print(f"Abriendo {task}")
-            else:
-                talk("Lo siento, parece que aún no has agregado ese elemento. Usa el botón de agregar")
-        elif 'archivo' in rec:
-            file = rec.replace("archivo", "").strip()
-            if file in files:
-                for file in files:
-                    if file in rec:
-                        sub.Popen(files[file], shell=True)
-                        print(f'Abriendo {file}')
-                        talk(f'Abriendo {file}')
-            else:
-                talk("Lo siento, parece que aún no has agregado ese elemento. Usa el botón de agregar")
-        elif 'escribe' in rec:
-            try:
-                with open("nota.txt", 'a') as f:
-                    write(f)
-
-            except FileNotFoundError as e:
-                file = open("nota.txt", 'w')
-                write(file)
-        elif 'termina' in rec:
+        if 'busca' in rec:
+            key_words['busca'](rec)
+        else:
+            for word in key_words:
+                if word in rec:
+                    key_words[word](rec)
+        if 'termina' in rec:
             talk('Nox fuera')
             break
 
@@ -216,7 +227,7 @@ def write(f):
     rec_write = listen()
     f.write(rec_write + os.linesep)
     f.close()
-    talk("¡Ready!, chek it out")
+    talk("¡Listo!, dale un vistazo")
     sub.Popen("nota.txt", shell=True)
 
 def open_w_files():
@@ -320,7 +331,7 @@ def add_pages():
     page_entry.delete(0,"end")
     pathp_entry.delete(0,"end")
 
-def save_data(key,value,file_name): #Memoria para los tres diccionarios
+def save_data(key,value,file_name): 
     try:
         with open(file_name, 'a') as f:
             f.write(key+ "," +value+ "\n")
@@ -335,14 +346,14 @@ def talk_pages():
             talk(site)
     else:
         talk("Aún no has agregado páginas web")
-def talk_apps(): #programs
+def talk_apps(): 
     if bool(programs) == True:
         talk("Has agregado las siguientes aplicaciones:")
         for program in programs:
             talk(program)
     else:
         talk("Aún no has agregado aplicaciones")
-def talk_files(): #files
+def talk_files(): 
     if bool(files) == True:
         talk("Has agregado los siguientes documentos:")
         for file in files:

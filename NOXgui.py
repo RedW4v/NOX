@@ -150,6 +150,13 @@ def abre(rec):
                 sub.call(f'start msedge.exe {sites[task]}', shell=True)
                 print(f"Abriendo {task}")
                 talk(f'Abriendo {task}')
+    elif task in programs:
+        for task in programs:
+            if task in rec:
+                talk(f"Abriendo {task}")
+                os.startfile(programs[task])
+    else:
+        talk("Aún no has agregado programas, usa los botones correspondientes")
 def archivo(rec):
     file = rec.replace("archivo", "").strip()
     if file in files:
@@ -185,6 +192,16 @@ def enviar_mensaje(rec):
                 whats.send_message(contact,message)
     else:
         talk("Parece que no has agregado a ese contacto, usa el botón de agregar")
+def cierra(rec):
+    for task in programs:
+        kill_task = programs[task].split('\\')
+        kill_task = kill_task[-1]
+        if task in rec:
+            sub.call(f'TASKKILL /IM {kill_task} /F', shell=True)
+            talk(f"{task} fue aniquilada")
+    if 'duerme' in rec:
+        sub.call('TASKKILL /IM python.exe /F', shell=True)
+        talk("Volveré...")
 
 def play_alarm():
     mixer.init()
@@ -223,7 +240,9 @@ key_words = {
     'abre': abre,
     'archivo': archivo,
     'escribe': escribe,
-    'mensaje': enviar_mensaje
+    'mensaje': enviar_mensaje,
+    'cierra': cierra, 
+    'duerme': cierra
 }
 
 def run_nox():

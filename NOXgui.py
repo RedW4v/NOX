@@ -12,12 +12,15 @@ from pygame import mixer
 from tkinter import *
 from PIL import ImageTk, Image
 import threading
+import browser
 
 
 # python .\NOX.py
 # Al pasarlo a otro dispositivo hay que cambiar las rutas en files, programs y hay que poner call me little
 # sunshine en la misma carpeta de NOX
 
+
+#---------------------------------------------------Ventana Base--------------------------------------------------
 main_window = Tk() #Ventana raíz
 main_window.title("NOX Assistant")
 
@@ -51,7 +54,7 @@ text_info.place(x=0,y=175,height=275, width=198)
 nox_photo = ImageTk.PhotoImage(Image.open(r"C:\Users\zjosh\Desktop\RW\Proyectoss\AsistentePY\NOX\R.jpg"))
 window_photo = Label(main_window, image=nox_photo)
 window_photo.pack(pady=5)
-
+#-------------------------------------Configuraciones iniciales-----------------------------------------
 def mexico_voice():
     change_voice(2)
 def usa_voice():
@@ -119,6 +122,7 @@ def listen():
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
     return rec
 
+# ---------------------------Funciones----------------------------------
 
 def reproduce(rec):
     music = rec.replace('reproduce', '')
@@ -232,7 +236,12 @@ def play_instructions():
         instructions_played = True
         talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones, archivos que desees abrir y contactos de whatsapp, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. Para los contactos asegurate de agregar el número telefónico precedido del código de tu país como +52 en méxico. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
 
+def buscame(rec):
+    something = rec.replace('búscame','').split()
+    talk("Buscando "+something)
+    browser.search(something)
 
+# -------------------------------Palabras Clave-------------------------------
 key_words = {
     'busca': busca,
     'reproduce': reproduce,
@@ -242,9 +251,11 @@ key_words = {
     'escribe': escribe,
     'mensaje': enviar_mensaje,
     'cierra': cierra, 
-    'duerme': cierra
+    'duerme': cierra, 
+    'búscame':buscame
 }
 
+#------------------------------------------Main------------------------------------
 def run_nox():
     while True:
         try:
@@ -271,6 +282,8 @@ def write(f):
     talk("¡Listo!, dale un vistazo")
     sub.Popen("nota.txt", shell=True)
 
+
+#-----------------------------------------------------INTERFAZ---------------------------------------------------------
 def open_w_files():
     global filename_entry, pathf_entry
     window_files = Toplevel()#segunda ventana
@@ -370,6 +383,7 @@ def open_w_contact():
     save_button = Button(window_contact, text="Guardar", bg="#203A43", fg="White",width=8,height=1, command=add_contact)
     save_button.pack(pady=4)
 
+#--------------------------------------------FUNCIONES GUI-----------------------------------------------------------
 def add_contact():
     name_file = contact_entry.get().strip() #Corta espacio en blanco si está al inicio o al final
     path_file = pathcon_entry.get().strip()
@@ -442,6 +456,7 @@ def talk_contacts():
     else:
         talk('Aún no has agregado contactos')
 
+#------------------------------------------------BOTONES----------------------------------------------------
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
 button_voice_mx.place(x=625,y=90, width=100, height=30)

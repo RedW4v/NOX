@@ -13,9 +13,12 @@ from tkinter import *
 from PIL import ImageTk, Image
 import threading
 import browser
+import database
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer
 
 
-# python .\NOX.py
+# python .\NOXgui.py
 # Al pasarlo a otro dispositivo hay que cambiar las rutas en files, programs y hay que poner call me little
 # sunshine en la misma carpeta de NOX
 
@@ -86,7 +89,7 @@ engine.setProperty('voice', voices[2].id)
 engine.setProperty('rate', 145)
 
 
-
+#-------------------------------------------Archivos Permanencia---------------------------------------------
 sites = {}
 charge_data(sites,"paginas.txt")
 files = {}
@@ -96,6 +99,7 @@ charge_data(programs,"aplicaciones.txt")
 contacts = {}
 charge_data(contacts,"contactos.txt")
 
+#------------------------------------------Habla y Escucha-------------------------------------------
 def talk(text):
     engine.say(text)
     engine.runAndWait()
@@ -106,12 +110,12 @@ def read_and_talk():
 def write_text(text_wiki):
     text_info.insert(INSERT, text_wiki)
 
-def listen():
+def listen(phrase = None):
     listener = sr.Recognizer()
 
     with sr.Microphone() as source:
         listener.adjust_for_ambient_noise(source)
-        talk("Te escucho...")
+        talk(phrase)
         pc = listener.listen(source)
     try:
         rec = listener.recognize_google(pc, language="es")
@@ -184,14 +188,14 @@ def escribe(rec):
 
 def enviar_mensaje(rec):
     talk("¿A quién deseas enviar el mensaje?")
-    contact = listen()
+    contact = listen("te escucho")
     contact = contact.strip()
     if contact in contacts:
         for cont in contacts:
             if cont == contact:
                 contact = contacts[cont]
                 talk("Qué mensaje deseas enviar?")
-                message = listen()
+                message = listen("te escucho")
                 talk("Enviando mensaje...")
                 whats.send_message(contact,message)
     else:
@@ -237,11 +241,29 @@ def play_instructions():
         talk("¡Hola! Soy Nox, tu asistente virtual. Antes de comenzar, quiero darte unas breves instrucciones. Para agregar sitios web, aplicaciones, archivos que desees abrir y contactos de whatsapp, utiliza los botones 'Add pages', 'Add apps' y 'Add files', respectivamente. Llena los campos con el nombre con el que deseas referirte a cada elemento y su ruta, ya sea la ruta del explorador de archivos o la URL de la página web. Para los contactos asegurate de agregar el número telefónico precedido del código de tu país como +52 en méxico. ¡Listo! Ahora puedes comenzar a usar Nox de manera eficiente.")
 
 def buscame(rec):
-    something = rec.replace('búscame','').split()
+    something = rec.replace('búscame','').strip()
     talk("Buscando "+something)
     browser.search(something)
 
-# -------------------------------Palabras Clave-------------------------------
+def hablemos(rec):
+    talk("Dame un segundo...")
+    chat = ChatBot("nox", database_uri=None)#Si se borra un registro, lo olvidará también
+    trainer = ListTrainer(chat)
+    trainer.train(database.get_questions_and_answers())
+    talk("Lista, hablemos")
+    while True:
+        try:
+            request = listen("")
+        except UnboundLocalError:
+            talk("No te entendí, intenta de nuevo")
+            continue
+        print("Tu: ", request)
+        answer = chat.get_response(request)
+        print("Nox: ", answer)
+        talk(answer)
+        if 'adiós' in request:
+            break
+# -------------------------------------------------Palabras Clave---------------------------------------------------
 key_words = {
     'busca': busca,
     'reproduce': reproduce,
@@ -252,14 +274,15 @@ key_words = {
     'mensaje': enviar_mensaje,
     'cierra': cierra, 
     'duerme': cierra, 
-    'búscame':buscame
+    'búscame':buscame,
+    'hablemos': hablemos
 }
 
 #------------------------------------------Main------------------------------------
 def run_nox():
     while True:
         try:
-            rec = listen()
+            rec = listen("te escucho...")
         except UnboundLocalError:
             talk("No te entendí, intenta de nuevo")
             continue
@@ -276,7 +299,7 @@ def run_nox():
 
 def write(f):
     talk("¿Qué quieres que escriba?")
-    rec_write = listen()
+    rec_write = listen("te escucho")
     f.write(rec_write + os.linesep)
     f.close()
     talk("¡Listo!, dale un vistazo")
@@ -456,7 +479,7 @@ def talk_contacts():
     else:
         talk('Aún no has agregado contactos')
 
-#------------------------------------------------BOTONES----------------------------------------------------
+#------------------------------------------------BOTONES-------------------------------------------------------
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
 button_voice_mx.place(x=625,y=90, width=100, height=30)

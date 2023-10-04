@@ -5,7 +5,7 @@ import pyttsx3
 import pywhatkit
 import wikipedia
 import datetime
-import time
+
 import keyboard
 import os
 from pygame import mixer
@@ -74,9 +74,10 @@ def charge_data(name_dict, name_file):
     try:
         with open(name_file) as f:
             for line in f:
-                (key,val) = line.split(",")
-                val = val.rsplit("\n") #Cortamos los saltos de línea que se va a cargar
-                name_dict[key] = val
+                parts = line.strip().split(",")
+                if len(parts) == 2:
+                    key, val = parts
+                    name_dict[key] = val
     except FileNotFoundError:
         pass
 
@@ -107,6 +108,7 @@ def talk(text):
 def read_and_talk():
     text = text_info.get("1.0", "end") #Obtiene el texto de principio a fin
     talk(text)
+
 def write_text(text_wiki):
     text_info.insert(INSERT, text_wiki)
 
@@ -125,6 +127,7 @@ def listen(phrase = None):
     except sr.RequestError as e:
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
     return rec
+
 
 # ---------------------------Funciones----------------------------------
 
@@ -245,24 +248,6 @@ def buscame(rec):
     talk("Buscando "+something)
     browser.search(something)
 
-def hablemos(rec):
-    talk("Dame un segundo...")
-    chat = ChatBot("nox", database_uri=None)#Si se borra un registro, lo olvidará también
-    trainer = ListTrainer(chat)
-    trainer.train(database.get_questions_and_answers())
-    talk("Lista, hablemos")
-    while True:
-        try:
-            request = listen("")
-        except UnboundLocalError:
-            talk("No te entendí, intenta de nuevo")
-            continue
-        print("Tu: ", request)
-        answer = chat.get_response(request)
-        print("Nox: ", answer)
-        talk(answer)
-        if 'adiós' in request:
-            break
 # -------------------------------------------------Palabras Clave---------------------------------------------------
 key_words = {
     'busca': busca,
@@ -274,27 +259,34 @@ key_words = {
     'mensaje': enviar_mensaje,
     'cierra': cierra, 
     'duerme': cierra, 
-    'búscame':buscame,
-    'hablemos': hablemos
+    'búscame':buscame
 }
 
 #------------------------------------------Main------------------------------------
 def run_nox():
+    chat = ChatBot("juanita", database_uri=None)
+    trainer = ListTrainer(chat)
+    trainer.train(database.get_questions_answers())
+    talk("Te escucho...")
     while True:
         try:
-            rec = listen("te escucho...")
+            rec = listen("")
         except UnboundLocalError:
             talk("No te entendí, intenta de nuevo")
             continue
         if 'busca' in rec:
             key_words['busca'](rec)
-        else:
-            for word in key_words:
-                if word in rec:
-                    key_words[word](rec)
-        if 'termina' in rec:
-            talk('Nox fuera')
             break
+        elif rec.split()[0] in key_words:
+            key = rec.split()[0]        
+            key_words[key](rec)
+        else:
+            print("Tú: ", rec)
+            answer = chat.get_response(rec)
+            print("Juanita: ", answer)
+            talk(answer)
+            if 'chao' in rec:
+                break
     main_window.update() #Refresca el programa para eficiencia
 
 def write(f):
@@ -479,6 +471,7 @@ def talk_contacts():
     else:
         talk('Aún no has agregado contactos')
 
+
 #------------------------------------------------BOTONES-------------------------------------------------------
 button_voice_mx = Button(main_window, text="Voz México", fg="white", bg="#38ef7d", 
                          font=("Arial",10,"bold"), command=mexico_voice)
@@ -496,6 +489,9 @@ button_speak = Button(main_window, text="Hablar", fg="white", bg="#480048",
                          font=("Arial",10,"bold"), command=read_and_talk)
 button_speak.place(x=625,y=150, width=100, height=30)
 
+# button_enviar_texto = Button(main_window, text="Enviar Texto", fg="white", bg="#2980B9", 
+#                              font=("Arial", 10, "bold"), command=procesar_texto)
+# button_enviar_texto.place(x=347, y=245, width=100, height=30)
 
 
 button_add_files = Button(main_window, text="Add files", fg="white", bg="#23074d", 

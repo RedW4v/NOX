@@ -54,7 +54,7 @@ canvas_comandos.create_text(90,80, text = comandos, fill="white", font='Arial 10
 text_info = Text(main_window,bg="#2c3e50",fg="white")
 text_info.place(x=0,y=175,height=275, width=198)
 
-nox_photo = ImageTk.PhotoImage(Image.open(r"C:\Users\zjosh\Desktop\RW\Proyectoss\AsistentePY\NOX\R.jpg"))
+nox_photo = ImageTk.PhotoImage(Image.open(r"C:\Users\ryzen 5\Desktop\RW\Proyectoss\Asistente\NOX\R.jpg"))
 window_photo = Label(main_window, image=nox_photo)
 window_photo.pack(pady=5)
 #-------------------------------------Configuraciones iniciales-----------------------------------------
@@ -429,7 +429,7 @@ def add_apps():
     path_app = patha_entry.get().strip()
     
     programs[name_app] = path_app
-    save_data(name_app,path_app,"apliciones.txt")
+    save_data(name_app,path_app,"aplicaciones.txt")
     app_entry.delete(0,"end")
     patha_entry.delete(0,"end")
 def add_pages():

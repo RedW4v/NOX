@@ -1,2 +1,2 @@
-música,C:\Users\zjosh\AppData\Local\Microsoft\WindowsApps\Spotify.exe
-telegram,C:\Users\zjosh\AppData\Roaming\Telegram Desktop\Telegram.exe
+mï¿½sica,C:\Users\ryzen 5\AppData\Roaming\Spotify\Spotify.exe
+telegram,C:\Users\ryzen 5\AppData\Roaming\Telegram Desktop\Telegram.exe

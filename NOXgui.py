@@ -124,6 +124,7 @@ def listen(phrase = None):
         rec = rec.lower()
     except sr.UnknownValueError:
         print("No entendí, intenta de nuevo")
+        print(rec)
     except sr.RequestError as e:
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
     return rec
@@ -211,7 +212,7 @@ def cierra(rec):
             sub.call(f'TASKKILL /IM {kill_task} /F', shell=True)
             talk(f"{task} fue aniquilada")
     if 'duerme' in rec:
-        sub.call('TASKKILL /IM python.exe /F', shell=True)
+        sub.call('TASKKILL /IM NOXgui.py /F', shell=True)
         talk("Volveré...")
 
 def play_alarm():
@@ -264,9 +265,9 @@ key_words = {
 
 #------------------------------------------Main------------------------------------
 def run_nox():
-    chat = ChatBot("juanita", database_uri=None)
+    chat = ChatBot("nox", database_uri=None)
     trainer = ListTrainer(chat)
-    trainer.train(database.get_questions_answers())
+    trainer.train(database.get_questions_and_answers())
     talk("Te escucho...")
     while True:
         try:
@@ -283,9 +284,9 @@ def run_nox():
         else:
             print("Tú: ", rec)
             answer = chat.get_response(rec)
-            print("Juanita: ", answer)
+            print("Nox: ", answer)
             talk(answer)
-            if 'chao' in rec:
+            if 'termina' in rec:
                 break
     main_window.update() #Refresca el programa para eficiencia
 
@@ -299,6 +300,12 @@ def write(f):
 
 
 #-----------------------------------------------------INTERFAZ---------------------------------------------------------
+
+# def enviar_comando():
+#     global rec
+#     rec = text_info.get("1.0", "end").strip().lower()  # Obtiene el texto de text_info
+#     run_nox()  # Llama a la función run_nox para procesar el comando
+
 def open_w_files():
     global filename_entry, pathf_entry
     window_files = Toplevel()#segunda ventana
@@ -489,6 +496,9 @@ button_speak = Button(main_window, text="Hablar", fg="white", bg="#480048",
                          font=("Arial",10,"bold"), command=read_and_talk)
 button_speak.place(x=625,y=150, width=100, height=30)
 
+# button_enviar_comando = Button(main_window, text="Enviar Comando", fg="white", bg="#2980B9", 
+#                              font=("Arial", 10, "bold"), command=enviar_comando)
+# button_enviar_comando.place(x=347, y=245, width=112, height=30)
 # button_enviar_texto = Button(main_window, text="Enviar Texto", fg="white", bg="#2980B9", 
 #                              font=("Arial", 10, "bold"), command=procesar_texto)
 # button_enviar_texto.place(x=347, y=245, width=100, height=30)
